@@ -1,0 +1,68 @@
+#!/bin/sh
+
+ARG0=$0
+
+DIRNAME="`dirname $ARG0`"
+PROGRAM="`basename $ARG0`"
+
+javadir=/usr/local/opt/oracle/product/11.1.0/jdk
+libdir=$DIRNAME/../lib
+logdir=$DIRNAME/../logs
+pidfile="$logdir/$PROGRAM.pid"
+mainclass=DirWatcher
+watchdir=$logdir   # for testing watch logdir
+
+jsvc="$DIRNAME/jsvc \
+-java-home $javadir \
+-pidfile $pidfile \
+-cp $libdir/commons-daemon-1.0.10.jar:$libdir/dirwatcher.jar \
+-outfile $logdir/sysout.log \
+-errfile $logdir/syserr.log"
+
+start() {
+  echo -n $"Starting $PROGRAM"
+
+  #start daemon
+  $jsvc $mainclass $watchdir
+}
+
+stop() {
+  echo -n $"Stopping $PROGRAM"
+
+  #stop daemon
+  $jsvc -stop $mainclass 
+}
+
+restart() {
+  stop
+  start
+}
+
+status() {
+  if [ -f $pidfile ];then
+    ps -fp `cat $pidfile` 2>&1 1>/dev/null
+    if [ $? -eq 0 ];then
+      echo "$PROGRAM is running: pid `cat $pidfile`" 
+      return
+    fi
+  fi
+  echo "$PROGRAM is not running"
+}
+
+case $1 in
+  start) 
+        start
+  ;;
+  stop) 
+        stop
+  ;;
+  restart) 
+        restart
+  ;;
+  status)
+        status
+  ;;
+  *)
+    echo $"Usage: $prog {start|stop|restart|status}"
+    exit 3
+esac

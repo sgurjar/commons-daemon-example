@@ -1,0 +1,24 @@
+#!/bin/bash
+#set -x
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+java_dir=/usr/local/opt/oracle/product/11.1.0/jdk
+build_dir=$DIR/build
+lib_dir=$DIR/lib
+
+if [ ! -d $build_dir ];then
+ mkdir $build_dir
+fi
+
+$java_dir/bin/javac \
+-d $DIR/build \
+src/*.java
+
+if [ $? -eq 0 ];then
+ cd $build_dir
+ $java_dir/bin/jar cvf dirwatcher.jar *.class
+ mv dirwatcher.jar $lib_dir
+ cd $DIR
+fi
+
+echo "done!"
